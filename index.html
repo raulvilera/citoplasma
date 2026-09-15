@@ -745,24 +745,21 @@
         })
         .then(text => {
             console.log('Resposta do servidor (texto):', text);
-            // Tenta fazer parse como JSON
+            let data;
             try {
-                const data = JSON.parse(text);
-                if (data.success) {
-                    feedback.textContent = '✅ Respostas enviadas com sucesso!';
-                    feedback.className = 'feedback visible sucesso';
-                    btnEnviar.disabled = true;
-                    btnEnviar.textContent = '✅ Respostas enviadas';
-                } else {
-                    throw new Error(data.error || 'Erro desconhecido no servidor');
-                }
+                data = JSON.parse(text);
             } catch (parseError) {
-                console.error('Erro ao fazer parse da resposta:', parseError);
-                feedback.textContent = '✅ Respostas enviadas! (Resposta: ' + text.substring(0, 50) + ')';
-                feedback.className = 'feedback visible sucesso';
-                btnEnviar.disabled = true;
-                btnEnviar.textContent = '✅ Respostas enviadas';
+                throw new Error('O Apps Script retornou uma resposta inválida: ' + text.substring(0, 120));
             }
+
+            if (!data.success) {
+                throw new Error(data.error || 'O Apps Script recusou o envio.');
+            }
+
+            feedback.textContent = '✅ Respostas enviadas com sucesso! Nota objetiva: ' + data.notaObjetivas;
+            feedback.className = 'feedback visible sucesso';
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = '✅ Respostas enviadas';
         })
         .catch(error => {
             console.error('Erro detalhado:', error);
